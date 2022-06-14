@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
 
-export default function HeadComponent(): JSX.Element {
+const HeadComponent: React.FC<{}> = () => {
     return (
         <Head>
             <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -27,3 +27,5 @@ export default function HeadComponent(): JSX.Element {
         </Head>
     );
 }
+
+export default HeadComponent
