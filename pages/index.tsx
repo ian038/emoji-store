@@ -1,11 +1,23 @@
+import React, { useEffect, useState } from 'react';
+import Product from '../components/Product';
 import type { NextPage } from 'next';
 import HeadComponent from '../components/Head';
 import { PublicKey } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { ProductData } from './api/fetchProducts';
 
 const Home: NextPage = () => {
     const { publicKey } = useWallet()
+    const [products, setProducts] = useState<ProductData[]>([])
+
+    useEffect(() => {
+        if (publicKey) {
+            fetch(`/api/fetchProducts`).then(response => response.json()).then((data: ProductData[]) => {
+                setProducts(data);
+            });
+        }
+    }, [publicKey])
 
     const renderNotConnectedContainer = () => (
         <div>
@@ -13,6 +25,14 @@ const Home: NextPage = () => {
             <div className="button-container">
                 <WalletMultiButton className="cta-button connect-wallet-button" />
             </div>
+        </div>
+    )
+
+    const renderItemBuyContainer = () => (
+        <div className="products-container">
+            {products.map((product) => (
+                <Product key={product.id} product={product} />
+            ))}
         </div>
     )
 
@@ -26,7 +46,7 @@ const Home: NextPage = () => {
                 </header>
 
                 <main>
-                    {publicKey ? 'Connected' : renderNotConnectedContainer()}
+                    {publicKey ? renderItemBuyContainer() : renderNotConnectedContainer()}
                 </main>
             </div>
         </div>

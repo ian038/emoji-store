@@ -4,7 +4,6 @@ import IPFSDownload from './IpfsDownload';
 
 type ProductProp = {
     product: {
-        id: string,
         name: string,
         price: string,
         description: string,
@@ -13,7 +12,7 @@ type ProductProp = {
 }
 
 const Product: React.FC<ProductProp> = ({ product }) => {
-    const { id, name, price, description, image_url } = product;
+    const { name, price, description, image_url } = product;
 
     return (
         <div className={styles.product_container}>
