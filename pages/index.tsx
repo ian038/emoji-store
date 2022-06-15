@@ -10,7 +10,6 @@ import { ProductData } from './api/fetchProducts';
 const Home: NextPage = () => {
     const { publicKey } = useWallet()
     const isOwner = (publicKey ? publicKey.toString() === process.env.NEXT_PUBLIC_OWNER_PUBLIC_KEY : false);
-    console.log(isOwner)
     const [products, setProducts] = useState<ProductData[]>([])
     const [creating, setCreating] = useState<boolean>(false)
 

@@ -82,8 +82,8 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
             const interval = setInterval(async () => {
                 try {
                     const result = await findReference(connection, orderID);
-                    console.log("Finding tx reference", result.confirmationStatus);
-                    if (result.confirmationStatus === "confirmed" || result.confirmationStatus === "finalized") {
+                    console.log("Finding tx reference", result.signature);
+                    if (result.signature) {
                         clearInterval(interval);
                         setStatus(STATUS.Paid);
                         setLoading(false);
