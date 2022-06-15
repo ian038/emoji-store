@@ -53,8 +53,6 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
         const txData = await txResponse.json();
 
         const tx = Transaction.from(Buffer.from(txData.transaction, "base64"));
-        console.log("Tx data is", tx);
-
         try {
             const txHash = await sendTransaction(tx, connection);
             console.log(`Transaction sent: https://solscan.io/tx/${txHash}?cluster=devnet`);

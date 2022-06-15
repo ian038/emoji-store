@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import Product from '../components/Product';
 import type { NextPage } from 'next';
 import HeadComponent from '../components/Head';
-import { PublicKey } from '@solana/web3.js';
+import CreateProduct from '../components/CreateProduct';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { ProductData } from './api/fetchProducts';
 
 const Home: NextPage = () => {
     const { publicKey } = useWallet()
+    const isOwner = (publicKey ? publicKey.toString() === process.env.NEXT_PUBLIC_OWNER_PUBLIC_KEY : false);
+    console.log(isOwner)
     const [products, setProducts] = useState<ProductData[]>([])
+    const [creating, setCreating] = useState<boolean>(false)
 
     useEffect(() => {
         if (publicKey) {
@@ -43,9 +46,16 @@ const Home: NextPage = () => {
                 <header className="header-container">
                     <p className="header"> 😳 Emoji Store 😈</p>
                     <p className="sub-text">The only emoji store that accepts sh*tcoins</p>
+
+                    {isOwner && (
+                        <button className="create-product-button" onClick={() => setCreating(!creating)}>
+                            {creating ? "Close" : "Create Product"}
+                        </button>
+                    )}
                 </header>
 
                 <main>
+                    {creating && <CreateProduct />}
                     {publicKey ? renderItemBuyContainer() : renderNotConnectedContainer()}
                 </main>
             </div>

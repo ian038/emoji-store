@@ -28,9 +28,7 @@ const createTransaction = async (req: NextApiRequest, res: NextApiResponse) => {
         const itemPrice = products.find((item) => item.id === itemID)?.price;
 
         if (!itemPrice) {
-            return res.status(404).json({
-                message: "Item not found. please check item ID"
-            });
+            return res.status(404).json({ message: "Item not found. please check item ID" });
         }
 
         const bigAmount = new BigNumber(itemPrice);
@@ -72,12 +70,9 @@ const createTransaction = async (req: NextApiRequest, res: NextApiResponse) => {
         });
         const base64 = serializedTransaction.toString("base64");
 
-        res.status(200).json({
-            transaction: base64
-        });
+        res.status(200).json({ transaction: base64 });
     } catch (error) {
         console.error(error);
-
         res.status(500).json({ error: "error creating tx" });
         return;
     }
