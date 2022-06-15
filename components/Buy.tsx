@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { findReference, FindReferenceError } from "@solana/pay";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Circles } from "react-loader-spinner";
 import IPFSDownload from "./IpfsDownload";
@@ -8,12 +9,18 @@ type BuyProps = {
     itemID: number
 }
 
+const STATUS = {
+    Initial: "Initial",
+    Submitted: "Submitted",
+    Paid: "Paid"
+}
+
 const Buy: React.FC<BuyProps> = ({ itemID }) => {
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const orderID = useMemo<PublicKey>(() => Keypair.generate().publicKey, []);
-    const [paid, setPaid] = useState<boolean | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [status, setStatus] = useState<string>(STATUS.Initial)
 
     const order = useMemo(() => ({
         buyer: publicKey?.toString(),
@@ -38,13 +45,41 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
         try {
             const txHash = await sendTransaction(tx, connection);
             console.log(`Transaction sent: https://solscan.io/tx/${txHash}?cluster=devnet`);
-            setPaid(true);
+            setStatus(STATUS.Submitted);
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (status === STATUS.Submitted) {
+            setLoading(true);
+            const interval = setInterval(async () => {
+                try {
+                    const result = await findReference(connection, orderID);
+                    console.log("Finding tx reference", result.confirmationStatus);
+                    if (result.confirmationStatus === "confirmed" || result.confirmationStatus === "finalized") {
+                        clearInterval(interval);
+                        setStatus(STATUS.Paid);
+                        setLoading(false);
+                        alert("Thank you for your purchase!");
+                    }
+                } catch (e) {
+                    if (e instanceof FindReferenceError) {
+                        return null;
+                    }
+                    console.error("Unknown error", e);
+                } finally {
+                    setLoading(false);
+                }
+            }, 1000);
+            return () => {
+                clearInterval(interval);
+            };
+        }
+    }, [status])
 
     if (!publicKey) {
         return (
@@ -60,7 +95,7 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
 
     return (
         <div>
-            {paid ? (
+            {status === STATUS.Paid ? (
                 <IPFSDownload filename="emojis.zip" hash="QmWWH69mTL66r3H8P4wUn24t1L5pvdTJGUTKBqT11KCHS5" />
             ) : (
                 <button disabled={loading} className="buy-button" onClick={processTransaction}>
