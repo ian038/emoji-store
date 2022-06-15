@@ -4,6 +4,7 @@ import { findReference, FindReferenceError } from "@solana/pay";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Circles } from "react-loader-spinner";
 import IPFSDownload from "./IpfsDownload";
+import { addOrder } from '../utils'
 
 type BuyProps = {
     itemID: number
@@ -64,6 +65,7 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
                         clearInterval(interval);
                         setStatus(STATUS.Paid);
                         setLoading(false);
+                        addOrder(order)
                         alert("Thank you for your purchase!");
                     }
                 } catch (e) {

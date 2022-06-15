@@ -9,7 +9,7 @@ function get(req: NextApiRequest, res: NextApiResponse) {
     const buyerOrders = orders.filter((order: any) => order.buyer === buyer);
     if (buyerOrders.length === 0) {
         // 204 = successfully processed the request, not returning any content
-        res.status(204).send();
+        res.status(204).send('added');
     } else {
         res.status(200).json(buyerOrders);
     }
