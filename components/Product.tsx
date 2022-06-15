@@ -1,9 +1,10 @@
 import React from "react";
 import styles from "../styles/Product.module.css";
-import IPFSDownload from './IpfsDownload';
+import Buy from './Buy'
 
 type ProductProp = {
     product: {
+        id: number
         name: string,
         price: string,
         description: string,
@@ -12,7 +13,7 @@ type ProductProp = {
 }
 
 const Product: React.FC<ProductProp> = ({ product }) => {
-    const { name, price, description, image_url } = product;
+    const { id, name, price, description, image_url } = product;
 
     return (
         <div className={styles.product_container}>
@@ -28,7 +29,7 @@ const Product: React.FC<ProductProp> = ({ product }) => {
 
                 <div className={styles.product_action}>
                     <div className={styles.product_price}>{price} USDC</div>
-                    <IPFSDownload filename="emojis.zip" hash="QmWWH69mTL66r3H8P4wUn24t1L5pvdTJGUTKBqT11KCHS5" />
+                    <Buy itemID={id} />
                 </div>
             </div>
         </div>
