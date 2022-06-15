@@ -4,10 +4,16 @@ import { findReference, FindReferenceError } from "@solana/pay";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Circles } from "react-loader-spinner";
 import IPFSDownload from "./IpfsDownload";
-import { addOrder } from '../utils'
+import { addOrder, hasPurchased } from '../utils'
 
 type BuyProps = {
     itemID: number
+}
+
+type Order = {
+    buyer: string | undefined,
+    itemID: number,
+    orderID: string
 }
 
 const STATUS = {
@@ -23,13 +29,13 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [status, setStatus] = useState<string>(STATUS.Initial)
 
-    const order = useMemo(() => ({
+    const order = useMemo<Order>(() => ({
         buyer: publicKey?.toString(),
         orderID: orderID.toString(),
         itemID
     }), [publicKey, orderID, itemID]);
 
-    const processTransaction = async (): Promise<void> => {
+    const processTransaction = async () => {
         setLoading(true);
         const txResponse = await fetch("../api/createTransaction", {
             method: "POST",
@@ -53,6 +59,17 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        async function checkPurchased() {
+            const purchased = await hasPurchased(publicKey, itemID);
+            if (purchased) {
+                setStatus(STATUS.Paid);
+                console.log("Address has already purchased this item!");
+            }
+        }
+        checkPurchased();
+    }, [publicKey, itemID])
 
     useEffect(() => {
         if (status === STATUS.Submitted) {
