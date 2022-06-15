@@ -4,7 +4,7 @@ import { findReference, FindReferenceError } from "@solana/pay";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Circles } from "react-loader-spinner";
 import IPFSDownload from "./IpfsDownload";
-import { addOrder, hasPurchased } from '../utils'
+import { addOrder, hasPurchased, fetchItem } from '../utils'
 
 type BuyProps = {
     itemID: number
@@ -14,6 +14,11 @@ type Order = {
     buyer: string | undefined,
     itemID: number,
     orderID: string
+}
+
+type Item = {
+    filename: string,
+    hash: string
 }
 
 const STATUS = {
@@ -26,6 +31,7 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const orderID = useMemo<PublicKey>(() => Keypair.generate().publicKey, []);
+    const [item, setItem] = useState<Item | null>(null)
     const [loading, setLoading] = useState<boolean>(false);
     const [status, setStatus] = useState<string>(STATUS.Initial)
 
@@ -65,7 +71,8 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
             const purchased = await hasPurchased(publicKey, itemID);
             if (purchased) {
                 setStatus(STATUS.Paid);
-                console.log("Address has already purchased this item!");
+                const item = await fetchItem(itemID);
+                setItem(item)
             }
         }
         checkPurchased();
@@ -98,6 +105,15 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
                 clearInterval(interval);
             };
         }
+
+        async function getItem(itemID: number) {
+            const item = await fetchItem(itemID);
+            setItem(item);
+        }
+
+        if (status === STATUS.Paid) {
+            getItem(itemID);
+        }
     }, [status])
 
     if (!publicKey) {
@@ -114,8 +130,8 @@ const Buy: React.FC<BuyProps> = ({ itemID }) => {
 
     return (
         <div>
-            {status === STATUS.Paid ? (
-                <IPFSDownload filename="emojis.zip" hash="QmWWH69mTL66r3H8P4wUn24t1L5pvdTJGUTKBqT11KCHS5" />
+            {item ? (
+                <IPFSDownload filename={item.filename} hash={item.hash} />
             ) : (
                 <button disabled={loading} className="buy-button" onClick={processTransaction}>
                     Buy now 🠚

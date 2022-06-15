@@ -25,7 +25,7 @@ const createTransaction = async (req: NextApiRequest, res: NextApiResponse) => {
             });
         }
 
-        const itemPrice = products.find((item) => item?.id === itemID)?.price;
+        const itemPrice = products.find((item) => item.id === itemID)?.price;
 
         if (!itemPrice) {
             return res.status(404).json({
