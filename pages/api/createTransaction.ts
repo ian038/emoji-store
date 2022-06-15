@@ -1,16 +1,11 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import {
-    clusterApiUrl,
-    Connection,
-    PublicKey,
-    Transaction,
-    SystemProgram,
-    LAMPORTS_PER_SOL
-} from "@solana/web3.js";
+import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { createTransferCheckedInstruction, getAssociatedTokenAddress, getMint } from "@solana/spl-token";
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import products from './products.json'
 
+const usdcAddress = new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr");
 const sellerAddress: string = 'CMwWA8NjPRaoRZJDHmGRLz2gXYagRBkYPGaksrANyuhp'
 const sellerPublicKey = new PublicKey(sellerAddress);
 
@@ -44,18 +39,25 @@ const createTransaction = async (req: NextApiRequest, res: NextApiResponse) => {
         const endpoint = clusterApiUrl(network);
         const connection = new Connection(endpoint);
 
+        const buyerUsdcAddress = await getAssociatedTokenAddress(usdcAddress, buyerPublicKey);
+        const shopUsdcAddress = await getAssociatedTokenAddress(usdcAddress, sellerPublicKey);
         const { blockhash } = await connection.getLatestBlockhash("finalized");
+
+        const usdcMint = await getMint(connection, usdcAddress);
 
         const tx = new Transaction({
             recentBlockhash: blockhash,
             feePayer: buyerPublicKey
         });
 
-        const transferInstruction = SystemProgram.transfer({
-            fromPubkey: buyerPublicKey,
-            lamports: bigAmount.multipliedBy(LAMPORTS_PER_SOL).toNumber(),
-            toPubkey: sellerPublicKey
-        });
+        const transferInstruction = createTransferCheckedInstruction(
+            buyerUsdcAddress,
+            usdcAddress,
+            shopUsdcAddress,
+            buyerPublicKey,
+            bigAmount.toNumber() * 10 ** (await usdcMint).decimals,
+            usdcMint.decimals
+        );
 
         transferInstruction.keys.push({
             pubkey: new PublicKey(orderID),
